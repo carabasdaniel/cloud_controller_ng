@@ -77,13 +77,46 @@ require 'models/v3/persistence/package_docker_data_model'
 require 'models/v3/persistence/service_binding_model'
 require 'models/v3/persistence/task_model'
 
-
-all_classes = VCAP::CloudController.constants.select {|c| Class === VCAP::CloudController.const_get(c)}
-
-all_classes.select {|c| Object.const_get("VCAP::CloudController").const_get(c.to_s).superclass.name == 'Sequel::Model' }
-all_classes.each do |a_class|
-end
-
+require 'yaml'
 outfile = '/tmp/myfile.txt'
 
-File.open(outfile, 'w') { |file| file.write(all_classes.to_s) }
+# all_classes = VCAP::CloudController.constants.select {|c| Class === VCAP::CloudController.const_get(c)}
+
+# all_classes.select {|c| Object.const_get("VCAP::CloudController").const_get(c.to_s).superclass.name == 'Sequel::Model' }
+# all_classes.each do |a_class|
+# end
+
+swagger = YAML.load <<'...'
+swagger: "2.0"
+info:
+  description: CCv3
+  version: "1.0.0"
+  title: CCv3
+basePath: /v3
+schemes:
+  - http
+paths: {}
+definitions: {}
+...
+
+actions = {
+  'index' => 'get',
+  'show' => 'get',
+  'create' => 'post',
+  'update' => 'put',
+  'destroy' => 'delete',
+}
+paths = swagger['paths']
+Rails.application.routes.routes.each do |r|
+  path = r.path.spec.to_s
+  method = r.constraints[:request_method]
+  method = method.to_s.sub(/.*\^/, '').sub(/\$.*/, '').downcase
+  puts method
+  path.sub! /\(\.:format\)$/, ''
+  path.gsub! /:(\w+)/, '{\1}'
+  paths[path] = {
+    method => {},
+  }
+end
+
+File.open(outfile, 'w') { |file| file.write(swagger.to_yaml) }
