@@ -77,7 +77,8 @@ require 'models/v3/persistence/package_docker_data_model'
 require 'models/v3/persistence/service_binding_model'
 require 'models/v3/persistence/task_model'
 
-puts "test"
+
+all_classes = VCAP::CloudController.constants.select {|c| Class === VCAP::CloudController.const_get(c)}
 
 all_classes.select {|c| Object.const_get("VCAP::CloudController").const_get(c.to_s).superclass.name == 'Sequel::Model' }
 all_classes.each do |a_class|
