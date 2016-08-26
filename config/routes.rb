@@ -55,7 +55,15 @@ Rails.application.routes.draw do
   get '/tasks/:task_guid', to: 'tasks#show'
   put '/tasks/:task_guid/cancel', to: 'tasks#cancel'
 
-  post '/apps/:app_guid/tasks', to: 'tasks#create'
+
+  post '/apps/:app_guid/tasks', {
+    :to => 'tasks#create',
+    :cc_spec => {
+      :request => 'TaskCreateMessage',
+      :response => 'TaskPresenter'
+    }
+  }
+
   get '/apps/:app_guid/tasks', to: 'tasks#index'
 
   # service_bindings
@@ -68,4 +76,7 @@ Rails.application.routes.draw do
   match '404', to: 'errors#not_found', via: :all
   match '500', to: 'errors#internal_error', via: :all
   match '400', to: 'errors#bad_request', via: :all
+
+  # swagger spec endpoint
+  get '/swagger', to: 'swagger_spec#show'
 end

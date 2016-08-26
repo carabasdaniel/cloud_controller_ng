@@ -99,24 +99,37 @@ paths: {}
 definitions: {}
 ...
 
-actions = {
-  'index' => 'get',
-  'show' => 'get',
-  'create' => 'post',
-  'update' => 'put',
-  'destroy' => 'delete',
-}
+def get_request_definition(class_name)
+  the_class = eval("VCAP::CloudController::#{class_name}")
+  keys = the_class::ALLOWED_KEYS
+  puts keys
+end
+
+def get_response_definition(class_name)
+  the_class = eval("VCAP::CloudController::Presenters::V3::#{class_name}")
+  
+  puts the_class #.to_hash
+  puts the_class.to_yaml
+end
+
 paths = swagger['paths']
 Rails.application.routes.routes.each do |r|
   path = r.path.spec.to_s
   method = r.constraints[:request_method]
   method = method.to_s.sub(/.*\^/, '').sub(/\$.*/, '').downcase
-  puts method
   path.sub! /\(\.:format\)$/, ''
   path.gsub! /:(\w+)/, '{\1}'
   paths[path] = {
     method => {},
   }
+
+  next unless r.defaults[:cc_spec]
+
+  request_class_name = r.defaults[:cc_spec][:request]
+  response_class_name = r.defaults[:cc_spec][:response]
+
+  request_definition = get_request_definition(request_class_name)
+  response_definition = get_response_definition(response_class_name)
 end
 
 File.open(outfile, 'w') { |file| file.write(swagger.to_yaml) }

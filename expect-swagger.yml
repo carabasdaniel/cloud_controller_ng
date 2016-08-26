@@ -1,0 +1,76 @@
+swagger: '2.0'
+info:
+  version: v1
+  title: CAPI
+consumes:
+- application/json
+produces:
+- application/json
+schemes:
+- https
+basePath: /v3
+paths:
+  /tasks:
+    post:
+      operationId: TaskCreate
+			parameters:
+      - name: TaskCreateRequest
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/TaskCreateRequest"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: "#/definitions/TaskCreateResponse"          
+definitions:
+  TaskCreateRequest:
+    type: object
+    properties:
+      name:
+        type: string
+			command:
+        type: string
+			environment_variables:
+        type: string
+			memory_in_mb:
+        type: integer
+			droplet_guid:
+        type: string
+  TaskCreateResponse:
+    type: object
+    properties:
+      guid:
+        type: string
+      name:
+        type: string
+      command:
+        type: string
+      state:
+        type: string
+      memory_in_mb:
+        type: integer
+      environment_variables:
+        type: string
+      result:
+				properties:
+          failure_reason:
+						$ref: "#/definitions/failureReason"
+      created_at:
+        type: string
+      updated_at:
+        type: string
+      droplet_guid:
+        type: string
+      links:
+        type: string
+      self:
+        type: string
+      app:
+        type: string
+      droplet:
+        type: string
+  failureReason:
+		type: object
+		properties: {}
