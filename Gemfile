@@ -36,7 +36,6 @@ gem 'actionpack', '~> 4.2.5.2'
 gem 'actionview', '~> 4.2.5.2'
 gem 'public_suffix'
 
-gem 'fabricator'
 gem 'pry-tree'
 
 # Requiring this particular commit to get a fix to a race condition when subscribing before a connection is made.
