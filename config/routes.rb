@@ -51,16 +51,23 @@ Rails.application.routes.draw do
   get '/apps/:app_guid/route_mappings', to: 'route_mappings#index'
 
   # tasks
-  get '/tasks', to: 'tasks#index'
+  get '/tasks', {
+    to: 'tasks#index',
+    meta: {
+      response: 'PaginatedListPresenter',
+      model: 'TaskModel',
+    }
+  }
   get '/tasks/:task_guid', to: 'tasks#show'
   put '/tasks/:task_guid/cancel', to: 'tasks#cancel'
 
 
   post '/apps/:app_guid/tasks', {
-    :to => 'tasks#create',
-    :cc_spec => {
-      :request => 'TaskCreateMessage',
-      :response => 'TaskPresenter'
+    to: 'tasks#create',
+    meta: {
+      request: 'TaskCreateMessage',
+      response: 'TaskPresenter',
+      model: 'TaskModel',
     }
   }
 

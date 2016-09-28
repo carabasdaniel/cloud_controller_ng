@@ -16,3 +16,8 @@ task :rubocop_autocorrect do
   exit_code = cli.run(%w(--auto-correct))
   exit(exit_code) if exit_code != 0
 end
+
+# TODO
+# task cf:swagger
+# bundle exec rake tmp:clear db:drop db:create db:dev:migrate
+

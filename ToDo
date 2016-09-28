@@ -1,0 +1,3 @@
+- Move swagger generation code to an endpoint
+- Generate a task in swagger.yaml
+- Review with vlad

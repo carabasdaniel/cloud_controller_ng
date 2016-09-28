@@ -77,29 +77,48 @@ require 'models/v3/persistence/package_docker_data_model'
 require 'models/v3/persistence/service_binding_model'
 require 'models/v3/persistence/task_model'
 
-require 'yaml'
-outfile = '/tmp/myfile.txt'
+#------------------------------------------------------------------------------
+# Code to make swagger.yml
+#------------------------------------------------------------------------------
 
+#------------------------------------------------------------------------------
+# From pry:
+#
 # all_classes = VCAP::CloudController.constants.select {|c| Class === VCAP::CloudController.const_get(c)}
-
 # all_classes.select {|c| Object.const_get("VCAP::CloudController").const_get(c.to_s).superclass.name == 'Sequel::Model' }
 # all_classes.each do |a_class|
 # end
+
+# puts new(::VCAP::CloudController::TaskModel.make).to_hash.to_yaml
+# puts(::VCAP::CloudController::Presenters::V3::TaskPresenter.new(::VCAP::CloudController::TaskModel.make).to_hash)
+#------------------------------------------------------------------------------
+
+
+require 'yaml'
+require 'machinist'
+require 'machinist/sequel'
+require '/root/cf-dotnet-sdk-builder/cloud_controller_ng/spec/support/fakes/blueprints'
+
+model = ::VCAP::CloudController::TaskModel.make
+presenter = ::VCAP::CloudController::Presenters::V3::TaskPresenter.new(model)
+
+puts presenter.to_hash
 
 swagger = YAML.load <<'...'
 swagger: "2.0"
 info:
   description: CCv3
-  version: "1.0.0"
+  version: "2.0.0"
   title: CCv3
 basePath: /v3
 schemes:
-  - http
+- http
 paths: {}
 definitions: {}
 ...
 
 def get_request_definition(class_name)
+  return unless class_name
   the_class = eval("VCAP::CloudController::#{class_name}")
   keys = the_class::ALLOWED_KEYS
   puts keys
@@ -120,16 +139,19 @@ Rails.application.routes.routes.each do |r|
   path.sub! /\(\.:format\)$/, ''
   path.gsub! /:(\w+)/, '{\1}'
   paths[path] = {
-    method => {},
+    method => {
+      'summary' => '...',
+      'description' => '...',
+    },
   }
 
-  next unless r.defaults[:cc_spec]
+  next unless r.defaults[:meta]
 
-  request_class_name = r.defaults[:cc_spec][:request]
-  response_class_name = r.defaults[:cc_spec][:response]
+  request_class_name = r.defaults[:meta][:request]
+  response_class_name = r.defaults[:meta][:response]
 
   request_definition = get_request_definition(request_class_name)
   response_definition = get_response_definition(response_class_name)
 end
 
-File.open(outfile, 'w') { |file| file.write(swagger.to_yaml) }
+File.open('/tmp/swagger.yaml', 'w') { |file| file.write(swagger.to_yaml) }
