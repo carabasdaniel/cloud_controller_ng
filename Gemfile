@@ -71,14 +71,15 @@ group :test do
   gem 'parallel_tests'
   gem 'rack-test'
   gem 'rspec', '~> 3.0'
-  gem 'rspec-instafail'
+  gem 'rspec-instafail', '~> 0.2.5'
   gem 'rspec_api_documentation', git: 'https://github.com/zipmark/rspec_api_documentation.git'
   gem 'rspec-collection_matchers'
   gem 'rspec-its'
   gem 'rspec-rails'
-  gem 'rubocop'
+  gem 'rubocop', '~> 0.39.0'
   gem 'timecop'
-  gem 'webmock'
+  gem 'webmock', '~> 1.20.4'
+  gem 'rspec-legacy_formatters'
 end
 
 group :development do
