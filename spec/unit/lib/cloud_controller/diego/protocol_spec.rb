@@ -136,6 +136,7 @@ module VCAP::CloudController
 
           allow(egress_rules).to receive(:running).with(process).and_return(['running_egress_rule'])
           allow(LifecycleProtocol).to receive(:protocol_for_type).and_return(fake_lifecycle_protocol)
+          allow(VCAP::CloudController::IsolationSegmentSelector).to receive(:for_space).and_return('segment-from-selector')
         end
 
         it 'is a message with the information nsync needs to desire the app' do
@@ -180,80 +181,9 @@ module VCAP::CloudController
                 'org_id' => process.organization.guid,
               }
             },
-            'volume_mounts' => an_instance_of(Array)
+            'volume_mounts' => an_instance_of(Array),
+            'isolation_segment' => 'segment-from-selector'
           }.merge(fake_lifecycle_protocol.desired_app_message(double(:app))))
-        end
-
-        describe 'isolation segments' do
-          let(:assigner) { VCAP::CloudController::IsolationSegmentAssign.new }
-          let(:isolation_segment_model) { VCAP::CloudController::IsolationSegmentModel.make }
-          let(:isolation_segment_model_2) { VCAP::CloudController::IsolationSegmentModel.make }
-          let(:shared_isolation_segment) { VCAP::CloudController::IsolationSegmentModel.shared_segment }
-
-          context 'when the org has a default' do
-            context 'and the default is the shared isolation segments' do
-              before do
-                assigner.assign(shared_isolation_segment, [process.space.organization])
-              end
-
-              it 'does not set an isolation segment' do
-                expect(message['isolation_segment']).to be_nil
-              end
-            end
-
-            context 'and the default is not the shared isolation segment' do
-              before do
-                assigner.assign(isolation_segment_model, [process.space.organization])
-                process.space.organization.update(default_isolation_segment_model: isolation_segment_model)
-              end
-
-              it 'sets the isolation segment' do
-                expect(message['isolation_segment']).to eq(isolation_segment_model.name)
-              end
-
-              context 'and the space from that org has an isolation segment' do
-                context 'and the isolation segment is the shared isolation segment' do
-                  before do
-                    assigner.assign(shared_isolation_segment, [process.space.organization])
-                    process.space.isolation_segment_model = shared_isolation_segment
-                    process.space.save
-                  end
-
-                  it 'does not set the isolation segment' do
-                    expect(message['isolation_segment']).to be_nil
-                  end
-                end
-
-                context 'and the isolation segment is not the shared or the default' do
-                  before do
-                    assigner.assign(isolation_segment_model_2, [process.space.organization])
-                    process.space.isolation_segment_model = isolation_segment_model_2
-                    process.space.save
-                  end
-
-                  it 'sets the IS from the space' do
-                    expect(message['isolation_segment']).to eq(isolation_segment_model_2.name)
-                  end
-                end
-              end
-            end
-          end
-
-          context 'when the org does not have a default' do
-            context 'and the space from that org has an isolation segment' do
-              context 'and the isolation segment is not the shared isolation segment' do
-                before do
-                  assigner.assign(isolation_segment_model, [process.space.organization])
-                  process.space.isolation_segment_model = isolation_segment_model
-                  process.space.save
-                end
-
-                it 'sets the isolation segment' do
-                  expect(message['isolation_segment']).to eq(isolation_segment_model.name)
-                end
-              end
-            end
-          end
         end
 
         context 'when app does not have ports defined' do
